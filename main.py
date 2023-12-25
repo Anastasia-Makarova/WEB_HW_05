@@ -21,7 +21,6 @@ def urls_list(period: int) -> list:
     
     return urls_list
 
-        
 
 async def main(urls: list):
 
@@ -30,7 +29,14 @@ async def main(urls: list):
         for url in urls:
             async with session.get(url) as response:
                 result = await response.json()
-                results.append(result)
+                # results.append(type(result['exchangeRate']))
+                # for curr in result['exchangeRate']:
+                    
+                exchange_USD, *_ = filter(lambda curr: curr['currency'] == 'USD', result['exchangeRate'])
+                exchange_EUR, *_ = filter(lambda curr: curr['currency'] == 'EUR', result['exchangeRate'])
+                # results.append(f'{date.today()}: USD: buy: {exchange_USD["purchaseRateNB"]}, sale: {exchange_USD["saleRateNB"]}, EURO: buy: {exchange_EUR["purchaseRateNB"]}, sale: {exchange_EUR["saleRateNB"]}')
+                currency_for_date = {url[-10 :-1]:{'USD:':{'buy:': exchange_USD["purchaseRateNB"], 'sale:':exchange_USD["saleRateNB"]},'EURO:':{'buy:': exchange_EUR["purchaseRateNB"], 'sale:':exchange_EUR["saleRateNB"]} }}
+                results.append(currency_for_date)
 
         return results
 
@@ -42,7 +48,8 @@ if __name__ == "__main__":
             if platform.system() == 'Windows':
                 asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
             r = asyncio.run(main(urls_list(period)))
-            print(r)
+            for line in r:
+                print(line)
         else:
             raise ValueError ('Only up to 10 days possible')
     except IndexError:
